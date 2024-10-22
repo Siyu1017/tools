@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分組</title>
+    <style>
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .app {
+            width: -webkit-fill-available;
+            height: -webkit-fill-available;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: -webkit-fill-available;
+            height: -webkit-fill-available;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 6rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        }
+
+        .app-header {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 3rem;
+        }
+
+        .app-settings {
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            margin-bottom: auto;
+        }
+
+        .input {
+            border: none;
+            outline: none;
+            background: rgba(0, 0, 0, .05);
+            padding: .75rem 1rem;
+            border-radius: .375rem;
+        }
+
+        .input-group {
+            padding: .5rem .25rem;
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+        }
+
+        .app-content {
+            width: -webkit-fill-available;
+            display: flex;
+            flex-direction: row;
+            gap: 3rem;
+            padding-bottom: 2rem;
+            gap: 3rem;
+        }
+
+        .app-result {
+            width: -webkit-fill-available;
+            border-radius: .5rem;
+            border: 1.5px solid rgba(0, 0, 0, .1);
+        }
+
+        label {
+            width: -webkit-fill-available;
+        }
+
+        table {
+            border-radius: .5rem;
+            border-collapse: collapse;
+            box-sizing: border-box;
+            width: -webkit-fill-available;
+            min-height: 10rem;
+        }
+
+        thead {
+            border-bottom: 1.5px solid rgba(0, 0, 0, .1);
+        }
+
+        thead th {
+            white-space: nowrap;
+        }
+
+        tr+tr {
+            border-top: 1.5px solid rgba(0, 0, 0, .1);
+        }
+
+        th {
+            padding: .25rem 1rem;
+            font-weight: normal;
+        }
+
+        th+th {
+            border-left: 1.5px solid rgba(0, 0, 0, .1);
+        }
+
+        .input:not([type="checkbox"]) {
+            width: min(30vw, 18rem);
+        }
+
+        .button {
+            background: #000000;
+            color: #fff;
+            border-radius: .5rem;
+            padding: .5rem 1rem;
+            font-size: .935rem;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .app-footer {
+            position: sticky;
+            bottom: 0;
+            padding: 2rem;
+            width: -webkit-fill-available;
+            background: #fff;
+            text-align: center;
+            cursor: default;
+            margin-top: auto;
+        }
+
+        .app-footer * {
+            color: rgb(170 170 170);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .app-footer:hover * {
+            color: #000;
+        }
+
+        .app-container * {
+            transition: all .1s ease-in-out;
+        }
+
+        .input-group.inline {
+            flex-direction: row;
+        }
+
+        @media screen and (max-width: 926px) {
+            .app-content {
+                flex-direction: column;
+            }
+
+            .input:not([type="checkbox"]) {
+                width: -webkit-fill-available;
+            }
+
+            .app-settings {
+                position: relative;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .app-container {
+                padding: 3rem 3rem 0;
+            }
+        }
+
+        *::selection {
+            background: rgb(211 227 253);
+            color: unset;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="app-container">
+            <div class="app-header">分組程式</div>
+            <div class="app-content">
+                <div class="app-settings">
+                    <div class="input-group number">
+                        <label for="count">人數</label>
+                        <input class="input" type="number" id="count" name="count" value="36">
+                    </div>
+                    <div class="input-group number">
+                        <label for="unit">每組人數</label>
+                        <input class="input" type="number" id="unit" name="unit" value="5">
+                    </div>
+                    <div class="input-group inline">
+                        <input class="input" type="checkbox" id="autoAssign" name="autoAssign">
+                        <label for="autoAssign">剩餘分配至各組</label>
+                    </div>
+                    <div class="input-group">
+                        <button class="button" id="action">分組</button>
+                    </div>
+                </div>
+                <div class="app-result" id="result">
+
+                </div>
+            </div>
+            <div class="app-footer">
+                <span>
+                    <a href="https://github.com/Siyu1017/" target="_blank" style="text-decoration: none;">Siyu1017 (c) 2024</a>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const count = document.getElementById("count");
+        const unit = document.getElementById("unit");
+        const autoAssign = document.getElementById("autoAssign");
+        const button = document.getElementById('action');
+        const result = document.getElementById('result');
+
+        count.addEventListener('input', (e) => {
+            if (Number(count.value) < 1) {
+                count.value = 1;
+            }
+        })
+
+        unit.addEventListener('input', (e) => {
+            if (Number(unit.value) > Number(count.value)) {
+                unit.value = count.value;
+            } else if (Number(unit.value) < 1) {
+                unit.value = 1;
+            }
+        })
+
+        function getAssignment(count, unit) {
+            var left = count % unit;
+            var groups = Math.floor(count / unit);
+
+            var average = left / groups;
+            var leftAssignmentArray = Array.from({ length: groups }, () => Math.ceil(average));
+            if (average != Math.ceil(average)) {
+                var remainder = left % groups;
+                function tryToSolve(base = 0) {
+                    for (let i = 0; i < groups; i++) {
+                        leftAssignmentArray[i] += 1;
+                    }
+                    if (remainder > Math.ceil(average) * (base + 1)) return tryToSolve(base + 1);
+                    for (let i = groups; i > Math.ceil(average) * base - remainder; i--) {
+                        leftAssignmentArray[i] -= 1;
+                    }
+                    return;
+                }
+                console.log(remainder, left)
+                if (remainder <= left) {
+                    for (let i = 0; i < groups - left; i++) {
+                        leftAssignmentArray[i] -= 1;
+                        console.log(leftAssignmentArray[i])
+                    }
+                } else {
+                    console.log(1)
+                    tryToSolve();
+                }
+            }
+
+            return leftAssignmentArray;
+        }
+
+        var list = document.createElement('table');
+        var thead = document.createElement('thead');
+        var tbody = document.createElement('tbody');
+
+        var theadRow = document.createElement('tr');
+        theadRow.innerHTML = '<th scope="col">組別</th><th scope="col">座號</th>';
+        thead.appendChild(theadRow);
+        list.appendChild(thead);
+        list.appendChild(tbody);
+        result.appendChild(list);
+
+        button.addEventListener('click', () => {
+            tbody.innerHTML = '';
+            const countValue = Number(count.value);
+            const unitValue = Number(unit.value);
+
+            const leftCount = countValue % unitValue;
+            const groupCount = Math.floor(countValue / unitValue);
+
+            var groups = [];
+            var waitList = Array.from({ length: countValue }, (v, i) => i + 1);
+
+            function randomItem() {
+                var index = Math.floor(Math.random() * waitList.length);
+                var item = waitList[index];
+                waitList.splice(index, 1);
+                return item;
+            }
+
+            if (autoAssign.checked == true) {
+                var leftAssignmentArray = getAssignment(countValue, unitValue);
+
+                for (let i = 0; i < groupCount; i++) {
+                    groups.push(Array.from({ length: unitValue + leftAssignmentArray[i] }, randomItem))
+                }
+            } else {
+                for (let i = 0; i < groupCount; i++) {
+                    groups.push(Array.from({ length: unitValue }, randomItem))
+                }
+                groups.push(Array.from({ length: leftCount }, randomItem))
+            }
+
+
+
+            for (let i = 0; i < groups.length; i++) {
+                var item = document.createElement('tr');
+                item.innerHTML = `<th>${i + 1}</th><th>${groups[i].join('、')}</th>`;
+                tbody.appendChild(item);
+            }
+        })
+    </script>
+</body>
+
+</html>
