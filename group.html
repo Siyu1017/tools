@@ -68,13 +68,13 @@
             flex-direction: row;
             gap: 3rem;
             padding-bottom: 2rem;
-            gap: 3rem;
         }
 
         .app-result {
             width: -webkit-fill-available;
             border-radius: .5rem;
             border: 1.5px solid rgba(0, 0, 0, .1);
+            height: fit-content;
         }
 
         label {
@@ -242,7 +242,7 @@
 
             var average = left / groups;
             var leftAssignmentArray = Array.from({ length: groups }, () => Math.ceil(average));
-            if (average != Math.ceil(average)) {
+            if (Number.isInteger(average) == false) {
                 var remainder = left % groups;
                 function tryToSolve(base = 0) {
                     for (let i = 0; i < groups; i++) {
@@ -308,10 +308,10 @@
                 for (let i = 0; i < groupCount; i++) {
                     groups.push(Array.from({ length: unitValue }, randomItem))
                 }
-                groups.push(Array.from({ length: leftCount }, randomItem))
+                if (leftCount > 0) {
+                    groups.push(Array.from({ length: leftCount }, randomItem))
+                }
             }
-
-
 
             for (let i = 0; i < groups.length; i++) {
                 var item = document.createElement('tr');
