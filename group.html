@@ -226,6 +226,9 @@
             if (Number(count.value) < 1) {
                 count.value = 1;
             }
+            if (Number(unit.value) > Number(count.value)) {
+                unit.value = count.value;
+            }
         })
 
         unit.addEventListener('input', (e) => {
@@ -238,32 +241,17 @@
 
         function getAssignment(count, unit) {
             var left = count % unit;
-            var groups = Math.floor(count / unit);
+            var groups = Math.floor(count / unit) < 1 ? 1 : Math.floor(count / unit);
 
-            var average = left / groups;
-            var leftAssignmentArray = Array.from({ length: groups }, () => Math.ceil(average));
-            if (Number.isInteger(average) == false) {
-                var remainder = left % groups;
-                function tryToSolve(base = 0) {
-                    for (let i = 0; i < groups; i++) {
-                        leftAssignmentArray[i] += 1;
-                    }
-                    if (remainder > Math.ceil(average) * (base + 1)) return tryToSolve(base + 1);
-                    for (let i = groups; i > Math.ceil(average) * base - remainder; i--) {
-                        leftAssignmentArray[i] -= 1;
-                    }
-                    return;
+            var leftAssignmentArray = Array.from({ length: groups }, () => 0);
+            var i = groups - 1;
+            while (left > 0) {
+                leftAssignmentArray[i]++;
+                i--;
+                if (i < 0) {
+                    i = groups - 1;
                 }
-                console.log(remainder, left)
-                if (remainder <= left) {
-                    for (let i = 0; i < groups - left; i++) {
-                        leftAssignmentArray[i] -= 1;
-                        console.log(leftAssignmentArray[i])
-                    }
-                } else {
-                    console.log(1)
-                    tryToSolve();
-                }
+                left--;
             }
 
             return leftAssignmentArray;
@@ -315,7 +303,7 @@
 
             for (let i = 0; i < groups.length; i++) {
                 var item = document.createElement('tr');
-                item.innerHTML = `<th>${i + 1}</th><th>${groups[i].join('、')}</th>`;
+                item.innerHTML = `<th>${i + 1}(${groups[i].length})</th><th>${groups[i].join('、')}</th>`;
                 tbody.appendChild(item);
             }
         })
