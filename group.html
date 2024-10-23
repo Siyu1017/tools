@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>分組</title>
+    <meta name="description" content="分組工具">
+    <title>分組工具</title>
     <style>
         body {
             margin: 0;
@@ -143,11 +144,11 @@
         }
 
         .app-footer {
-            position: sticky;
-            bottom: 0;
             padding: 2rem;
             width: -webkit-fill-available;
+            /*
             background: #fff;
+            */
             text-align: center;
             cursor: default;
             margin-top: auto;
@@ -343,6 +344,7 @@
     </div>
 
     <script>
+        const container = document.querySelector('.app-container');
         const count = document.getElementById("count");
         const unit = document.getElementById("unit");
         const countGroup = document.getElementById("count-group");
@@ -459,6 +461,21 @@
                 item.innerHTML = `<th>${i + 1}</th><th>${groups[i].length}</th><th>${groups[i].join('、')}</th>`;
                 tbody.appendChild(item);
             }
+
+            function getPosition(element) {
+                function offset(el) {
+                    var rect = el.getBoundingClientRect(),
+                        scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+                        scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+                }
+                return { x: offset(element).left, y: offset(element).top };
+            }
+
+            container.scrollTo({
+                top: getPosition(result).y + container.scrollTop - 48,
+                behavior: 'smooth'
+            })
         })
     </script>
 </body>
