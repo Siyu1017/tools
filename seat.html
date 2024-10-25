@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="座位表產生器">
+    <title>座位表產生器</title>
+    <script src="./winui.min.js"></script>
+    <style>
+        :root {
+            --winbows-font-default: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .app {
+            width: -webkit-fill-available;
+            height: -webkit-fill-available;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: -webkit-fill-available;
+            height: -webkit-fill-available;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 6rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        }
+
+        .app-header {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 3rem;
+        }
+
+        .app-settings {
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            margin-bottom: auto;
+            align-items: center;
+        }
+
+        .input:not([type="checkbox"]) {
+            border: none;
+            outline: none;
+            background: #fff;
+            box-shadow: rgba(0, 0, 0, .1) 0px 0px 0px 1px;
+            padding: .75rem 1rem;
+            border-radius: .375rem;
+            font-size: 1rem;
+        }
+
+        .input-group {
+            padding: .5rem .25rem;
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+            width: -webkit-fill-available;
+        }
+
+        .app-content {
+            width: -webkit-fill-available;
+            display: flex;
+            flex-direction: row;
+            gap: 3rem;
+        }
+
+        .app-result {
+            width: -webkit-fill-available;
+            border-radius: .5rem;
+            border: 1.5px solid rgba(0, 0, 0, .1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .app-result-image {
+            width: -webkit-fill-available;
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .result-canvas {
+            width: -webkit-fill-available;
+            height: -webkit-fill-available;
+            transition: none;
+        }
+
+        label {
+            width: -webkit-fill-available;
+            font-size: 1rem;
+            padding: .25rem 0;
+        }
+
+        a {
+            outline: none;
+            cursor: default;
+        }
+
+        .input {
+            outline: none;
+        }
+
+        .input:not([type="checkbox"]) {
+            width: min(30vw, 18rem);
+        }
+
+        .button {
+            background: #000000;
+            color: #fff;
+            border-radius: .5rem;
+            padding: .625rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            border: none;
+            outline: none;
+        }
+
+        .button.outline {
+            background: #fff;
+            box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, .1);
+            color: #000;
+        }
+
+        .app-footer {
+            padding: 2rem;
+            width: -webkit-fill-available;
+            /*
+            background: #fff;
+            */
+            text-align: center;
+            cursor: default;
+            margin-top: auto;
+        }
+
+        .app-footer * {
+            color: rgb(170 170 170);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .app-footer:hover * {
+            color: #000;
+        }
+
+        .app-container * {
+            transition: all .1s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .input-group.inline {
+            flex-direction: row;
+        }
+
+        .hint {
+            max-height: 0;
+            overflow: hidden;
+            transition: all .1s ease-in-out;
+            font-size: .825rem;
+            user-select: none;
+            -webkit-user-select: none;
+            height: 100%;
+        }
+
+        .ad {
+            margin: 3rem 0 0;
+            background: rgb(255, 255, 255);
+            /* box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 16px; */
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+            overflow: hidden;
+            width: min(30vw, 18rem);
+            border: rgba(0, 0, 0, .1) solid 1.5px;
+            position: relative;
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .ad::before {
+            content: 'AD';
+            position: absolute;
+            right: .5rem;
+            top: .5rem;
+            background: rgb(255, 255, 255);
+            border: 1.5px solid rgba(0, 0, 0, .1);
+            border-radius: .375rem;
+            font-size: .75rem;
+            padding: .125rem .5rem;
+        }
+
+        .ad-image {
+            background: rgba(0, 0, 0, .1);
+            background-image: url("https://winbows11.vercel.app/banner.png");
+            width: -webkit-fill-available;
+            height: 8rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .ad-info {
+            padding: 1.5rem 2rem;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .ad-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: .5rem;
+        }
+
+        .ad-description {
+            font-size: .875rem;
+        }
+
+        @media screen and (max-width: 926px) {
+            .app-content {
+                flex-direction: column;
+            }
+
+            .input:not([type="checkbox"], .input-content-box) {
+                width: -webkit-fill-available;
+            }
+
+            .app-settings {
+                position: relative;
+            }
+
+            .ad {
+                flex-direction: row;
+                width: -webkit-fill-available;
+            }
+
+            .ad-image {
+                height: auto;
+                min-width: 15rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .app-container {
+                padding: 3rem 3rem 0;
+            }
+
+            .ad {
+                flex-direction: column;
+                width: -webkit-fill-available;
+            }
+
+            .ad-image {
+                display: none;
+            }
+        }
+
+        *::selection {
+            background: rgb(211 227 253);
+            color: unset;
+        }
+
+        .error .input {
+            box-shadow: rgb(220, 53, 69) 0px 0px 0px 1px;
+            color: rgb(220, 53, 69);
+        }
+
+        .error .hint {
+            max-height: fit-content;
+            padding: .25rem 0;
+            color: rgb(220, 53, 69);
+        }
+
+        .button:disabled {
+            background: #555;
+            cursor: default;
+        }
+
+        .input-container {
+            position: absolute;
+            padding: 1.25rem 1.25rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            flex-direction: column;
+            box-shadow: rgba(0, 0, 0, .1) 0px 0px 16px 4px;
+            border-radius: .5rem;
+            gap: 1rem;
+            background: #fff;
+            display: none;
+        }
+
+        .input-container.show {
+            display: flex;
+        }
+
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .input-header-text {
+            font-size: 1.25rem;
+        }
+
+        .input-header-button {
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            min-width: 1.25rem;
+            min-height: 1.25rem;
+            box-shadow: rgb(191, 191, 191) 0px 0px 0px 1px;
+            border-radius: .5rem;
+            overflow: hidden;
+        }
+
+        .input-header-button.locked {
+            background: rgb(233, 233, 233);
+        }
+
+        .input-header-button::before {
+            content: '';
+            mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWxvY2stb3BlbiI+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjExIiB4PSIzIiB5PSIxMSIgcng9IjIiIHJ5PSIyIi8+PHBhdGggZD0iTTcgMTFWN2E1IDUgMCAwIDEgOS45LTEiLz48L3N2Zz4=");
+            mask-size: cover;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            width: 1rem;
+            height: 1rem;
+            display: block;
+            background: rgb(151, 151, 151);
+        }
+
+        .input-header-button.locked::before {
+            mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWxvY2siPjxyZWN0IHdpZHRoPSIxOCIgaGVpZ2h0PSIxMSIgeD0iMyIgeT0iMTEiIHJ4PSIyIiByeT0iMiIvPjxwYXRoIGQ9Ik03IDExVjdhNSA1IDAgMCAxIDEwIDB2NCIvPjwvc3ZnPg==");
+            background: #000;
+        }
+
+        .input-content {
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+        }
+
+        .input-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="app-container">
+            <div class="app-header">座位表產生器</div>
+            <div class="app-content">
+                <div class="app-settings">
+                    <div class="input-group number" id="vertical-group">
+                        <label for="vertical">行數</label>
+                        <input class="input" type="number" id="vertical" name="vertical" value="6">
+                        <span class="hint">行數必須大於零</span>
+                    </div>
+                    <div class="input-group" id="horizontal-group">
+                        <label for="horizontal">列數</label>
+                        <input class="input" type="number" id="horizontal" name="horizontal" value="6">
+                        <span class="hint">列數必須大於零</span>
+                    </div>
+                    <div class="input-group">
+                        <button class="button" id="action">產生座位表</button>
+                    </div>
+                    <a class="ad" href="https://winbows11.vercel.app" target="_blank">
+                        <div class="ad-image"></div>
+                        <div class="ad-info">
+                            <div class="ad-title">Winbows11</div>
+                            <div class="ad-description">Just like Windows11, Winbows11 lets you experience Windows11 UI and animations on your web browser!</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="app-result" id="result">
+                    <div class="app-result-control">
+                        <button class="button" id="download">Download</button>
+                    </div>
+                    <div class="app-result-image" id="result-image">
+
+                    </div>
+                </div>
+            </div>
+            <div class="app-footer">
+                <span>
+                    <a href="https://github.com/Siyu1017/" target="_blank" style="text-decoration: none;">Siyu1017 (c) 2024</a>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.querySelector('.app-container');
+        const horizontal = document.getElementById("horizontal");
+        const vertical = document.getElementById("vertical");
+        const horizontalGroup = document.getElementById("horizontal-group");
+        const verticalGroup = document.getElementById("vertical-group");
+        const button = document.getElementById('action');
+        const result = document.getElementById('result');
+        const resultImage = document.getElementById('result-image');
+        const canvas = document.createElement('canvas');
+        const align = document.getElementById('align');
+        canvas.className = 'result-canvas';
+        resultImage.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+
+        const inputContainer = document.createElement('div');
+        const inputHeader = document.createElement('div');
+        const inputContent = document.createElement('div');
+        const inputFooter = document.createElement('div');
+        const inputHeaderText = document.createElement('div');
+        const inputHeaderLock = document.createElement('button');
+        const inputContentBox = document.createElement('input');
+        const inputContentHint = document.createElement('span');
+        const inputFooterCancelButton = document.createElement('button');
+        const inputFooterConfirmButton = document.createElement('button');
+
+        inputContainer.className = 'input-container';
+        inputHeader.className = 'input-header';
+        inputContent.className = 'input-content';
+        inputFooter.className = 'input-footer';
+        inputHeaderText.className = 'input-header-text';
+        inputHeaderLock.className = 'input-header-button';
+        inputContentBox.className = 'input-content-box input';
+        inputContentHint.className = 'hint';
+        inputFooterCancelButton.className = 'input-footer-button button outline';
+        inputFooterConfirmButton.className = 'input-footer-button button';
+
+        inputHeaderText.innerText = '編輯座號';
+        inputContentBox.type = 'number';
+        inputContentHint.innerText = `請輸入 1 ~  ${(Number(horizontal.value) * Number(vertical.value))} 的整數`;
+        inputFooterCancelButton.innerText = '取消';
+        inputFooterConfirmButton.innerText = '確定';
+
+        document.body.appendChild(inputContainer);
+        inputContainer.appendChild(inputHeader);
+        inputHeader.appendChild(inputHeaderText);
+        inputHeader.appendChild(inputHeaderLock);
+        inputContainer.appendChild(inputContent);
+        inputContent.appendChild(inputContentBox);
+        inputContent.appendChild(inputContentHint);
+        inputContainer.appendChild(inputFooter);
+        inputFooter.appendChild(inputFooterCancelButton);
+        inputFooter.appendChild(inputFooterConfirmButton);
+
+        var inWhichCell = (x, y) => { return [] };
+        var getCellPosition = (x, y) => { return [] };
+        var getCellSize = () => { return [] };
+        var focusedCell = [];
+        var lockedCells = [];
+        var selectedCell = [];
+        var cellContents = {};
+        var showInputPrompt = false;
+
+        var renderData = {
+            horizontal: 0,
+            vertical: 0,
+            contents: {}
+        }
+
+        function isLocked(x, y) {
+            return lockedCells.some(cell => cell[0] == x && cell[1] == y)
+        }
+
+        function lockCell(x, y) {
+            if (isLocked(x, y)) return;
+            lockedCells.push([x, y]);
+        }
+
+        function isValidContent(content) {
+            if (Number(content) < 1 || Number(content) > Number(horizontal.value) * Number(vertical.value) || !Number.isInteger(Number(content))) return false;
+            return true;
+        }
+
+        function unlockCell(x, y) {
+            lockedCells = lockedCells.filter(cell => {
+                return cell[0] != x || cell[1] != y
+            })
+        }
+
+        function getContent(x, y) {
+            if (!cellContents[x]) return '';
+            return cellContents[x][y] || '';
+        }
+
+        function setContent(x, y, content) {
+            if (!cellContents[x]) cellContents[x] = {};
+            if (!isValidContent(content)) return false;
+            cellContents[x][y] = content;
+            return true;
+        }
+
+        function canvasClarifier(canvas, ctx, width, height) {
+            const originalSize = {
+                width: (width ? width : canvas.offsetWidth),
+                height: (height ? height : canvas.offsetHeight)
+            }
+            var ratio = window.devicePixelRatio || 1;
+            canvas.width = originalSize.width * ratio;
+            canvas.height = originalSize.height * ratio;
+            ctx.scale(ratio, ratio);
+            if (originalSize.width != canvas.offsetWidth || originalSize.height != canvas.offsetHeight) {
+                canvas.style.width = originalSize.width + 'px';
+                canvas.style.height = originalSize.height + 'px';
+            }
+        }
+
+        function getPosition(element) {
+            function offset(el) {
+                var rect = el.getBoundingClientRect(),
+                    scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+                    scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+            }
+            return { x: offset(element).left, y: offset(element).top };
+        }
+
+        inputFooterCancelButton.addEventListener('click', () => {
+            inputContainer.classList.remove('show');
+            showInputPrompt = false;
+        });
+
+        inputFooterConfirmButton.addEventListener('click', () => {
+            var content = inputContentBox.value;
+            var success = setContent(selectedCell[0], selectedCell[1], content);
+            if (success == true) {
+                inputContainer.classList.remove('show');
+                inputContainer.classList.remove('error');
+                render();
+                showInputPrompt = false;
+            } else {
+                inputContainer.classList.add('error');
+                inputContentBox.focus();
+            }
+        });
+
+        inputContentBox.addEventListener('keydown', (e) => {
+            if (e.key == 'Enter') {
+                var content = inputContentBox.value;
+                var success = setContent(selectedCell[0], selectedCell[1], content);
+                if (success == true) {
+                    inputContainer.classList.remove('show');
+                    inputContainer.classList.remove('error');
+                    render();
+                    showInputPrompt = false;
+                } else {
+                    inputContainer.classList.add('error');
+                }
+            }
+        })
+
+        inputContentBox.addEventListener('input', (e) => {
+            if (isValidContent(inputContentBox.value) == true) {
+                inputContainer.classList.remove('error');
+            } else {
+                inputContainer.classList.add('error');
+            }
+        })
+
+        inputHeaderLock.addEventListener('click', () => {
+            if (isLocked(selectedCell[0], selectedCell[1]) == true) {
+                unlockCell(selectedCell[0], selectedCell[1]);
+                inputHeaderLock.classList.remove('locked');
+            } else {
+                lockCell(selectedCell[0], selectedCell[1]);
+                inputHeaderLock.classList.add('locked');
+            }
+        })
+
+        function setVerticalClassName() {
+            if (Number(vertical.value) < 1) {
+                verticalGroup.classList.add('error')
+            } else {
+                verticalGroup.classList.remove('error')
+            }
+        }
+
+        function setHorizontalClassName() {
+            if (Number(horizontal.value) < 1) {
+                horizontalGroup.classList.add('error')
+            } else {
+                horizontalGroup.classList.remove('error')
+            }
+        }
+
+        function updateButtonStatus() {
+            button.disabled = !isvalid();
+        }
+
+        function isvalid() {
+            return (Number(horizontal.value) >= 1) && (Number(vertical.value) >= 1);
+        }
+
+        horizontal.addEventListener('input', (e) => {
+            setHorizontalClassName();
+            updateButtonStatus();
+            if (isvalid()) {
+                render();
+            }
+        })
+
+        vertical.addEventListener('input', (e) => {
+            setVerticalClassName();
+            updateButtonStatus();
+            if (isvalid()) {
+                render();
+            }
+        })
+
+        button.addEventListener('click', () => {
+            if (!isvalid()) {
+                setHorizontalClassName();
+                setVerticalClassName();
+                updateButtonStatus();
+                return;
+            }
+            const horizontalValue = Number(horizontal.value);
+            const verticalValue = Number(vertical.value);
+
+            var waitList = Array.from({ length: horizontalValue * verticalValue }, (v, i) => i + 1);
+
+            function random() {
+                return waitList.splice(Math.floor(Math.random() * waitList.length), 1)[0];
+            }
+
+            for (let i = 0; i < horizontalValue; i++) {
+                for (let j = 0; j < verticalValue; j++) {
+                    if (!isLocked(i, j)) {
+                        setContent(i, j, random());
+                    }
+                }
+            }
+
+            renderData = {
+                horizontal: horizontalValue,
+                vertical: verticalValue,
+                contents: cellContents
+            }
+
+            render();
+
+            container.scrollTo({
+                top: getPosition(resultImage).y + container.scrollTop - 48,
+                behavior: 'smooth'
+            })
+        })
+
+        function drawGrid(horizontal, vertical) {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+
+            const margin = 16;
+
+            const elementWidth = canvas.offsetWidth - margin * 2;
+            const elementHeight = canvas.offsetHeight - margin * 2;
+
+            const cellWidth = elementWidth / horizontal;
+            const cellHeight = elementHeight / vertical;
+
+            // Vertical lines
+            for (let i = 0; i <= horizontal; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellWidth + margin, margin);
+                ctx.lineTo(i * cellWidth + margin, margin + cellHeight * vertical);
+                ctx.stroke();
+            }
+
+            // Horizontal lines
+            for (let i = 0; i <= vertical; i++) {
+                ctx.beginPath();
+                ctx.moveTo(margin, i * cellHeight + margin);
+                ctx.lineTo(margin + cellWidth * horizontal, i * cellHeight + margin);
+                ctx.stroke();
+            }
+
+            function highlightCell(cell, focused = false) {
+                if (cell[0] >= 0 && cell[1] >= 0 &&
+                    cell[0] < horizontal && cell[1] < vertical) {
+                    const cellX = margin + cellWidth * cell[0];
+                    const cellY = margin + cellHeight * cell[1];
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.fillStyle = '#298de521';
+                    if (focused == true) {
+                        ctx.fillStyle = '#298de547';
+                        ctx.strokeStyle = '#298de5';
+                    }
+                    ctx.lineWidth = .75;
+                    ctx.fillRect(cellX, cellY, cellWidth, cellHeight);
+                    ctx.strokeRect(cellX, cellY, cellWidth, cellHeight);
+                    ctx.restore();
+                }
+            }
+
+            function lockedCell(cell) {
+                if (cell[0] >= 0 && cell[1] >= 0 &&
+                    cell[0] < horizontal && cell[1] < vertical) {
+                    const cellX = margin + cellWidth * cell[0];
+                    const cellY = margin + cellHeight * cell[1];
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ff5757';
+                    ctx.fillStyle = '#ff11110d';
+                    ctx.lineWidth = .75;
+                    ctx.fillRect(cellX, cellY, cellWidth, cellHeight);
+                    ctx.strokeRect(cellX, cellY, cellWidth, cellHeight);
+                    ctx.restore();
+                }
+            }
+
+            lockedCells.forEach(cell => {
+                lockedCell(cell);
+            })
+
+            highlightCell(selectedCell, true);
+            if (selectedCell[0] != focusedCell[0] || selectedCell[1] != focusedCell[1]) {
+                highlightCell(focusedCell);
+            }
+
+            inWhichCell = (x, y) => {
+                var position = getPosition(canvas);
+                var x = x - position.x;
+                var y = y - position.y;
+
+                var cellX = Math.floor((x - margin) / cellWidth);
+                var cellY = Math.floor((y - margin) / cellHeight);
+
+                if (cellX < 0 || cellY < 0 || cellX > horizontal - 1 || cellY > vertical - 1) {
+                    return [];
+                }
+
+                return [cellX, cellY];
+            };
+
+            getCellSize = () => {
+                return [cellWidth, cellHeight];
+            };
+
+            getCellPosition = (x, y) => {
+                var position = getPosition(canvas);
+
+                if (x >= 0 && y >= 0 && x < horizontal && y < vertical) {
+                    return [
+                        position.x + margin + x * cellWidth,
+                        position.y + margin + y * cellHeight
+                    ]
+                }
+
+                return [];
+            };
+        }
+
+        function drawContent(horizontal, vertical) {
+            ctx.fillStyle = 'rgb(0, 0, 0)';
+
+            const margin = 16;
+
+            const elementWidth = canvas.offsetWidth - margin * 2;
+            const elementHeight = canvas.offsetHeight - margin * 2;
+
+            const cellWidth = elementWidth / horizontal;
+            const cellHeight = elementHeight / vertical;
+
+            // Vertical
+            for (let i = 0; i <= horizontal; i++) {
+                for (let j = 0; j <= vertical; j++) {
+                    var content = getContent(i, j);
+                    if (content != '') {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.rect(
+                            margin + i * cellWidth, margin + j * cellHeight,
+                            cellWidth, cellHeight
+                        );
+                        ctx.clip();
+                        ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
+
+                        // const metrics = ctx.measureText(content);
+                        // const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+                        ctx.fillText(content, margin + (i + 0.5) * cellWidth, margin + (j + 0.5) * cellHeight);
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+
+        function updateEditInput(cell) {
+            var cellPosition = getCellPosition(cell[0], cell[1]);
+            var cellSize = getCellSize();
+
+            inputHeaderText.innerText = '編輯座號';
+            inputContentBox.type = 'number';
+            inputFooterCancelButton.innerText = '取消';
+            inputFooterConfirmButton.innerText = '確定';
+            inputContentHint.innerText = `請輸入 1 ~  ${(Number(horizontal.value) * Number(vertical.value))} 的整數`;
+            inputContainer.classList.add('show');
+            inputContainer.classList.remove('error');
+
+            if (!isLocked(cell[0], cell[1])) {
+                inputHeaderLock.classList.remove('locked');
+            } else {
+                inputHeaderLock.classList.add('locked');
+            }
+
+            var left = cellPosition[0];
+            var top = cellPosition[1] + cellSize[1] + 8;
+
+            if (left + inputContainer.offsetWidth >= window.innerWidth - 8) {
+                left = window.innerWidth - inputContainer.offsetWidth - 8;
+            }
+            if (top + inputContainer.offsetHeight >= window.innerHeight - 8) {
+                top = window.innerHeight - inputContainer.offsetHeight - 8;
+            }
+
+            inputContainer.style.left = left + 'px';
+            inputContainer.style.top = top + 'px';
+
+            inputContentBox.value = getContent(cell[0], cell[1]);
+
+            inputContentBox.focus();
+            inputContentBox.select();
+
+            showInputPrompt = true;
+        }
+
+        const resultContainerResizeObserver = new ResizeObserver(() => {
+            render();
+            if (showInputPrompt == true) {
+                updateEditInput(selectedCell);
+            }
+        })
+        resultContainerResizeObserver.observe(resultImage);
+
+        function render() {
+            const cellMinWidth = 80;
+            const cellMinHeight = 36;
+            const w = resultImage.offsetWidth;
+
+            var width = w;
+            var height = w * (9 / 20);
+
+            if ((width - 32) / horizontal < cellMinWidth) {
+                width = cellMinWidth * horizontal + 32;
+                height = width * (9 / 20);
+            }
+            if ((height - 32) / vertical < cellMinHeight) {
+                height = cellMinHeight * vertical + 32;
+            }
+
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            canvasClarifier(canvas, ctx);
+            drawGrid(Number(horizontal.value), Number(vertical.value));
+            drawContent(Number(horizontal.value), Number(vertical.value));
+        }
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (e.type.startsWith('touch')) {
+                var touch = e.touches[0] || e.changedTouches[0];
+                e.pageX = touch.pageX;
+                e.pageY = touch.pageY;
+            }
+            const originalCell = focusedCell;
+            focusedCell = inWhichCell(e.pageX, e.pageY);
+
+            if (focusedCell != originalCell) {
+                render();
+            }
+        })
+
+        canvas.addEventListener('pointerleave', (e) => {
+            focusedCell = [];
+            render();
+        })
+
+        canvas.addEventListener('click', (e) => {
+            if (e.type.startsWith('touch')) {
+                var touch = e.touches[0] || e.changedTouches[0];
+                e.pageX = touch.pageX;
+                e.pageY = touch.pageY;
+            }
+            const originalCell = selectedCell;
+            selectedCell = inWhichCell(e.pageX, e.pageY);
+            if (originalCell[0] == selectedCell[0] && originalCell[1] == selectedCell[1] && selectedCell.length != 0) {
+                updateEditInput(selectedCell);
+            }
+            render();
+        })
+
+        canvas.addEventListener('contextmenu', (e) => {
+            if (e.type.startsWith('touch')) {
+                var touch = e.touches[0] || e.changedTouches[0];
+                e.pageX = touch.pageX;
+                e.pageY = touch.pageY;
+            }
+            e.preventDefault();
+            var cell = inWhichCell(e.pageX, e.pageY);
+            var cellLocked = isLocked(cell[0], cell[1]);
+            const menu = WinUI.contextMenu([{
+                className: 'lock',
+                text: cellLocked ? "Unlock" : "Lock",
+                action: async () => {
+                    if (cellLocked) {
+                        unlockCell(cell[0], cell[1]);
+                    } else {
+                        lockCell(cell[0], cell[1]);
+                    }
+                    render();
+                }
+            }], {
+                showIcon: false
+            })
+            selectedCell = cell;
+            if (cell.length == 0) return;
+            menu.open(e.pageX, e.pageY, 'left-top');
+            new Array("mousedown", "touchstart", "pointerdown").forEach(event => {
+                window.addEventListener(event, (e) => {
+                    if (menu.container.contains(e.target)) return;
+                    menu.close();
+                })
+            })
+        })
+
+        document.addEventListener('pointerdown', (e) => {
+            if (inputContainer.contains(e.target) || e.target == inputContainer) return;
+            inputContainer.classList.remove('show');
+            showInputPrompt = false;
+        })
+
+        function download(url, fileName) {
+            let a = document.createElement('a')
+            let event = new MouseEvent('click')
+            a.download = fileName;
+            a.href = url
+            a.dispatchEvent(event)
+        }
+
+        document.getElementById('download').addEventListener('click', (e) => {
+            download(getScreenShot(), 'screenshot.png');
+        })
+
+        function getScreenShot() {
+            const horizontal = renderData.horizontal;
+            const vertical = renderData.vertical;
+            const cellContents = renderData.contents;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const margin = 16;
+            const cellWidth = 80;
+            const cellHeight = 36;
+
+            const width = horizontal * cellWidth + margin * 2;
+            const height = vertical * cellHeight + margin * 2;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+
+            const elementWidth = width - margin * 2;
+            const elementHeight = height - margin * 2;
+
+            function roundMask() {
+                const radius = 16;
+
+                ctx.beginPath();
+                ctx.moveTo(radius, 0);
+                ctx.lineTo(width - radius, 0);
+                ctx.quadraticCurveTo(width, 0, width, radius);
+                ctx.lineTo(width, height - radius);
+                ctx.quadraticCurveTo(width, height, width - radius, height);
+                ctx.lineTo(radius, height);
+                ctx.quadraticCurveTo(0, height, 0, height - radius);
+                ctx.lineTo(0, radius);
+                ctx.quadraticCurveTo(0, 0, radius, 0);
+                ctx.closePath();
+
+                ctx.clip();
+            }
+
+            ctx.save();
+            roundMask();
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+
+            // Vertical lines
+            for (let i = 0; i <= horizontal; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellWidth + margin, margin);
+                ctx.lineTo(i * cellWidth + margin, margin + cellHeight * vertical);
+                ctx.stroke();
+            }
+
+            // Horizontal lines
+            for (let i = 0; i <= vertical; i++) {
+                ctx.beginPath();
+                ctx.moveTo(margin, i * cellHeight + margin);
+                ctx.lineTo(margin + cellWidth * horizontal, i * cellHeight + margin);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = 'rgb(0, 0, 0)';
+
+            function getContent(x, y) {
+                if (!cellContents[x]) return '';
+                return cellContents[x][y] || '';
+            }
+
+            // Vertical
+            for (let i = 0; i <= horizontal; i++) {
+                for (let j = 0; j <= vertical; j++) {
+                    var content = getContent(i, j);
+                    if (content != '') {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.rect(
+                            margin + i * cellWidth, margin + j * cellHeight,
+                            cellWidth, cellHeight
+                        );
+                        ctx.clip();
+                        ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
+
+                        // const metrics = ctx.measureText(content);
+                        // const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+                        ctx.fillText(content, margin + (i + 0.5) * cellWidth, margin + (j + 0.5) * cellHeight);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // Initialize
+        render();
+    </script>
+</body>
+
+</html>
