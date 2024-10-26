@@ -92,6 +92,7 @@
             width: -webkit-fill-available;
             overflow: hidden;
             height: fit-content;
+            position: relative;
         }
 
         .result-canvas {
@@ -242,6 +243,10 @@
                 width: -webkit-fill-available;
             }
 
+            .input-content-box {
+                width: 18rem;
+            }
+
             .app-settings {
                 position: relative;
             }
@@ -363,6 +368,120 @@
             align-items: center;
             gap: 1rem;
         }
+
+        .canvas-scroll-bar {
+            position: absolute;
+            width: -webkit-fill-available;
+            height: -webkit-fill-available;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            -webkit-user-drag: none;
+        }
+
+        .canvas-scroll-bar-horizontal {
+            width: calc(100% - 1rem);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            justify-content: space-between;
+            height: 1rem;
+            pointer-events: all;
+        }
+
+        .canvas-scroll-bar-vertical {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: calc(100% - 1rem);
+            width: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: all;
+        }
+
+        .canvas-scroll-bar-thumb {
+            height: -webkit-fill-available;
+            width: -webkit-fill-available;
+        }
+
+        .canvas-scroll-bar-button {
+            background: none;
+            border: none;
+            outline: none;
+            width: 1rem;
+            height: 1rem;
+            padding: 0;
+            opacity: 0;
+        }
+
+        .canvas-scroll-bar-button::before {
+            content: '';
+            display: block;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6.102 16.981c-1.074 0-1.648-1.265-.941-2.073l5.522-6.311a1.75 1.75 0 0 1 2.634 0l5.522 6.311c.707.808.133 2.073-.941 2.073H6.102z' fill='rgb(0 0 0 / 50%)'/%3E%3C/svg%3E");
+            mask-size: cover;
+            mask-position: center;
+            mask-repeat: no-repeat;
+            width: 1rem;
+            height: 1rem;
+            background: #000;
+            transform: rotate(var(--angle));
+        }
+
+        .canvas-scroll-bar-button.up {
+            --angle: 0deg;
+        }
+
+        .canvas-scroll-bar-button.left {
+            --angle: 270deg;
+        }
+
+        .canvas-scroll-bar-button.down {
+            --angle: 180deg;
+        }
+
+        .canvas-scroll-bar-button.right {
+            --angle: 90deg;
+        }
+
+        .canvas-scroll-bar-thumb-bar {
+            background: rgba(0, 0, 0, .5);
+            border-radius: 10rem;
+            -webkit-user-drag: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .canvas-scroll-bar-horizontal .canvas-scroll-bar-thumb-bar {
+            height: .125rem;
+            width: 100%;
+            transform: translateY(-50%);
+            position: relative;
+            top: 50%;
+        }
+
+        .canvas-scroll-bar-vertical .canvas-scroll-bar-thumb-bar {
+            height: 100%;
+            width: .125rem;
+            transform: translateX(-50%);
+            position: relative;
+            left: 50%;
+        }
+
+        .canvas-scroll-bar-vertical:hover .canvas-scroll-bar-button,
+        .canvas-scroll-bar-horizontal:hover .canvas-scroll-bar-button {
+            opacity: 1;
+        }
+
+        .canvas-scroll-bar-vertical:hover .canvas-scroll-bar-thumb-bar {
+            width: .375rem;
+        }
+
+        .canvas-scroll-bar-horizontal:hover .canvas-scroll-bar-thumb-bar {
+            height: .375rem;
+        }
     </style>
 </head>
 
@@ -412,17 +531,55 @@
 
     <script>
         const container = document.querySelector('.app-container');
+
+        // Input
         const horizontal = document.getElementById("horizontal");
         const vertical = document.getElementById("vertical");
         const horizontalGroup = document.getElementById("horizontal-group");
         const verticalGroup = document.getElementById("vertical-group");
         const button = document.getElementById('action');
+
+        // Result
         const result = document.getElementById('result');
         const resultImage = document.getElementById('result-image');
         const canvas = document.createElement('canvas');
-        const align = document.getElementById('align');
+        const canvasScrollBar = document.createElement('div');
+        const canvasScrollBarHorizontal = document.createElement('div');
+        const canvasScrollBarVertical = document.createElement('div');
+        const canvasScrollBarHorizontalThumb = document.createElement('div');
+        const canvasScrollBarHorizontalThumbBar = document.createElement('div');
+        const canvasScrollBarVerticalThumb = document.createElement('div');
+        const canvasScrollBarVerticalThumbBar = document.createElement('div');
+        const canvasScrollBarHorizontalLeftButton = document.createElement('button');
+        const canvasScrollBarHorizontalRightButton = document.createElement('button');
+        const canvasScrollBarVerticalUpButton = document.createElement('button');
+        const canvasScrollBarVerticalDownButton = document.createElement('button');
+
         canvas.className = 'result-canvas';
+        canvasScrollBar.className = 'canvas-scroll-bar';
+        canvasScrollBarHorizontal.className = 'canvas-scroll-bar-horizontal';
+        canvasScrollBarVertical.className = 'canvas-scroll-bar-vertical';
+        canvasScrollBarHorizontalThumb.className = 'canvas-scroll-bar-thumb';
+        canvasScrollBarVerticalThumb.className = 'canvas-scroll-bar-thumb';
+        canvasScrollBarHorizontalThumbBar.className = 'canvas-scroll-bar-thumb-bar';
+        canvasScrollBarVerticalThumbBar.className = 'canvas-scroll-bar-thumb-bar';
+        canvasScrollBarHorizontalLeftButton.className = 'canvas-scroll-bar-button left';
+        canvasScrollBarHorizontalRightButton.className = 'canvas-scroll-bar-button right';
+        canvasScrollBarVerticalUpButton.className = 'canvas-scroll-bar-button up';
+        canvasScrollBarVerticalDownButton.className = 'canvas-scroll-bar-button down';
+
         resultImage.appendChild(canvas);
+        resultImage.appendChild(canvasScrollBar);
+        canvasScrollBar.appendChild(canvasScrollBarHorizontal);
+        canvasScrollBarHorizontal.appendChild(canvasScrollBarHorizontalLeftButton);
+        canvasScrollBarHorizontal.appendChild(canvasScrollBarHorizontalThumb);
+        canvasScrollBarHorizontalThumb.appendChild(canvasScrollBarHorizontalThumbBar);
+        canvasScrollBarHorizontal.appendChild(canvasScrollBarHorizontalRightButton);
+        canvasScrollBar.appendChild(canvasScrollBarVertical);
+        canvasScrollBarVertical.appendChild(canvasScrollBarVerticalUpButton);
+        canvasScrollBarVertical.appendChild(canvasScrollBarVerticalThumb);
+        canvasScrollBarVerticalThumb.appendChild(canvasScrollBarVerticalThumbBar);
+        canvasScrollBarVertical.appendChild(canvasScrollBarVerticalDownButton);
 
         const ctx = canvas.getContext('2d');
 
@@ -474,11 +631,18 @@
         var cellContents = {};
         var showInputPrompt = false;
 
+        var scrollLeft = 0;
+        var scrollTop = 0;
+
         var renderData = {
             horizontal: 0,
             vertical: 0,
             contents: {}
         }
+
+        var margin = 16;
+        var cellWidth = 80;
+        var cellHeight = 36;
 
         function isLocked(x, y) {
             return lockedCells.some(cell => cell[0] == x && cell[1] == y)
@@ -667,39 +831,295 @@
             })
         })
 
+        // Horizontal
+        !(() => {
+            const events = {
+                "start": ["mousedown", "touchstart", "pointerdown"],
+                "move": ["mousemove", "touchmove", "pointermove"],
+                "end": ["mouseup", "touchend", "pointerup", "blur"]
+            }
+
+            var startX = 0;
+            var startY = 0;
+            var originalLeft = 0;
+            var pointerDown = false;
+
+            function horizontalScrollStart(e) {
+                if (e.type.startsWith('touch')) {
+                    var touch = e.touches[0] || e.changedTouches[0];
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                startX = e.pageX;
+                startY = e.pageY;
+                originalLeft = scrollLeft;
+                pointerDown = true;
+            }
+
+            function horizontalScrollMove(e) {
+                if (pointerDown != true) return;
+                try {
+                    document.getSelection().removeAllRanges();
+                } catch (e) { }
+                if (e.type.startsWith('touch')) {
+                    var touch = e.touches[0] || e.changedTouches[0];
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                var xScrollUnit = (cellWidth * Number(horizontal.value) + margin * 2) / resultImage.offsetWidth;
+                var xScrollMax = (cellWidth * Number(horizontal.value) + margin * 2) - resultImage.offsetWidth;
+                var percent = canvas.offsetWidth / (cellWidth * Number(horizontal.value) + margin * 2);
+                var leftWidth = (1 - (percent > 1 ? 1 : percent)) * canvasScrollBarHorizontalThumb.offsetWidth;
+                // var yScrollUnit = 0;
+                var dx = e.pageX - startX;
+                var result = originalLeft + dx * xScrollUnit;
+                if (result < 0) {
+                    scrollLeft = 0;
+                } else if (result > xScrollMax) {
+                    scrollLeft = xScrollMax;
+                } else {
+                    scrollLeft = result;
+                }
+                canvasScrollBarHorizontalThumbBar.style.transition = 'none';
+                canvasScrollBarHorizontalThumbBar.style.left = (scrollLeft / xScrollMax) * leftWidth < 0 ? 0 : (scrollLeft / xScrollMax) * leftWidth + 'px';
+                render();
+            }
+
+            function horizontalScrollEnd(e) {
+                pointerDown = false;
+                canvasScrollBarHorizontalThumbBar.style.transition = 'revert-layer';
+            }
+
+            events.start.forEach(event => {
+                canvasScrollBarHorizontalThumbBar.addEventListener(event, horizontalScrollStart);
+            })
+            events.move.forEach(event => {
+                window.addEventListener(event, horizontalScrollMove);
+            })
+            events.end.forEach(event => {
+                window.addEventListener(event, horizontalScrollEnd);
+            })
+        })();
+
+        function updateScrollBar() {
+            var xScrollMax = (cellWidth * Number(horizontal.value) + margin * 2) - resultImage.offsetWidth;
+            var yScrollMax = (cellHeight * Number(vertical.value) + margin * 2) - resultImage.offsetHeight;
+
+            var xPercent = canvas.offsetWidth / (cellWidth * Number(horizontal.value) + margin * 2);
+            var leftWidth = (1 - (xPercent > 1 ? 1 : xPercent)) * canvasScrollBarHorizontalThumb.offsetWidth;
+            var yPercent = resultImage.offsetHeight / (cellHeight * Number(vertical.value) + margin * 2);
+            var leftHeight = (1 - (yPercent > 1 ? 1 : yPercent)) * canvasScrollBarVerticalThumb.offsetHeight;
+
+            canvasScrollBarHorizontalThumbBar.style.transition = 'none';
+            canvasScrollBarHorizontalThumbBar.style.left = (scrollLeft / xScrollMax) * leftWidth < 0 ? 0 : (scrollLeft / xScrollMax) * leftWidth + 'px';
+            canvasScrollBarHorizontalThumbBar.style.transition = 'revert-layer';
+
+            canvasScrollBarVerticalThumbBar.style.transition = 'none';
+            canvasScrollBarVerticalThumbBar.style.top = (scrollTop / yScrollMax) * leftHeight < 0 ? 0 : (scrollTop / yScrollMax) * leftHeight + 'px';
+            canvasScrollBarVerticalThumbBar.style.transition = 'revert-layer';
+        }
+
+        // Vertical
+        !(() => {
+            const events = {
+                "start": ["mousedown", "touchstart", "pointerdown"],
+                "move": ["mousemove", "touchmove", "pointermove"],
+                "end": ["mouseup", "touchend", "pointerup", "blur"]
+            }
+
+            var startX = 0;
+            var startY = 0;
+            var originalTop = 0;
+            var pointerDown = false;
+
+            function verticalScrollStart(e) {
+                if (e.type.startsWith('touch')) {
+                    var touch = e.touches[0] || e.changedTouches[0];
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                startX = e.pageX;
+                startY = e.pageY;
+                originalTop = scrollTop;
+                pointerDown = true;
+            }
+
+            function verticalScrollMove(e) {
+                if (pointerDown != true) return;
+                try {
+                    document.getSelection().removeAllRanges();
+                } catch (e) { }
+                if (e.type.startsWith('touch')) {
+                    var touch = e.touches[0] || e.changedTouches[0];
+                    e.pageX = touch.pageX;
+                    e.pageY = touch.pageY;
+                }
+                var yScrollUnit = (cellHeight * Number(vertical.value) + margin * 2) / resultImage.offsetHeight;
+                var yScrollMax = (cellHeight * Number(vertical.value) + margin * 2) - resultImage.offsetHeight;
+                var percent = resultImage.offsetHeight / (cellHeight * Number(vertical.value) + margin * 2);
+                var leftHeight = (1 - (percent > 1 ? 1 : percent)) * canvasScrollBarVerticalThumb.offsetHeight;
+                // var yScrollUnit = 0;
+                var dy = e.pageY - startY;
+                var result = originalTop + dy * yScrollUnit;
+                if (result < 0) {
+                    scrollTop = 0;
+                } else if (result > yScrollMax) {
+                    scrollTop = yScrollMax;
+                } else {
+                    scrollTop = result;
+                }
+                canvasScrollBarVerticalThumbBar.style.transition = 'none';
+                canvasScrollBarVerticalThumbBar.style.top = (scrollTop / yScrollMax) * leftHeight < 0 ? 0 : (scrollTop / yScrollMax) * leftHeight + 'px';
+                render();
+            }
+
+            function verticalScrollEnd(e) {
+                pointerDown = false;
+                canvasScrollBarVerticalThumbBar.style.transition = 'revert-layer';
+            }
+
+            events.start.forEach(event => {
+                canvasScrollBarVerticalThumbBar.addEventListener(event, verticalScrollStart);
+            })
+            events.move.forEach(event => {
+                window.addEventListener(event, verticalScrollMove);
+            })
+            events.end.forEach(event => {
+                window.addEventListener(event, verticalScrollEnd);
+            })
+        })();
+
+        canvas.addEventListener('wheel', function (event) {
+            var delta = event.deltaY || event.detail || event.wheelDelta;
+            if (event.shiftKey) {
+                var width = canvas.offsetWidth / (cellWidth * Number(horizontal.value) + margin * 2) * 100;
+                if (width > 100) return;
+                if (delta < 0) {
+                    scrollLeft -= 50;
+                } else {
+                    scrollLeft += 50;
+                }
+                if (scrollLeft < 0) {
+                    scrollLeft = 0;
+                } 
+                if (scrollLeft > (cellWidth * Number(horizontal.value) + margin * 2) - resultImage.offsetWidth) {
+                    scrollLeft = (cellWidth * Number(horizontal.value) + margin * 2) - resultImage.offsetWidth;
+                }
+            } else {
+                var height = canvas.offsetHeight / (cellHeight * Number(vertical.value) + margin * 2) * 100;
+                if (height > 100) return;
+                if (delta < 0) {
+                    scrollTop -= 50;
+                } else {
+                    scrollTop += 50;
+                }
+                if (scrollTop < 0) {
+                    scrollTop = 0;
+                }
+                if (scrollTop > (cellHeight * Number(vertical.value) + margin * 2) - resultImage.offsetHeight) {
+                    scrollTop = (cellHeight * Number(vertical.value) + margin * 2) - resultImage.offsetHeight;
+                }
+            }
+            render();
+            updateScrollBar();
+            if (showInputPrompt == true) {
+                updateEditInput(selectedCell);
+            }
+            event.preventDefault();
+        });
+
+        function getViewportCellRange() {
+            return {
+                x: [
+                    ~~((scrollLeft - margin) / cellWidth),
+                    ~~((scrollLeft + canvas.offsetWidth - margin) / cellWidth)
+                ],
+                y: [
+                    ~~((scrollTop - margin) / cellHeight),
+                    ~~((scrollTop + canvas.offsetHeight - margin) / cellHeight)
+                ]
+            }
+        }
+
+        function cellInViewport(x, y) {
+            var validX = false;
+            var validY = false;
+            var range = getViewportCellRange();
+            if (range.x[0] <= x && range.x[1] >= x) {
+                validX = true;
+            }
+            if (range.y[0] <= y && range.y[1] >= y) {
+                validY = true;
+            }
+            return validX && validY;
+        }
+
+        function isAvailableCell(x, y) {
+            if (x < 0 || y < 0 || x >= Number(horizontal.value) || y >= Number(vertical.value)) return false;
+            return true;
+        }
+
         function drawGrid(horizontal, vertical) {
+            inWhichCell = (x, y) => {
+                var position = getPosition(canvas);
+                var x = x - position.x + scrollLeft;
+                var y = y - position.y + scrollTop;
+
+                var cellX = Math.floor((x - margin) / cellWidth);
+                var cellY = Math.floor((y - margin) / cellHeight);
+
+                if (!cellInViewport(cellX, cellY)) {
+                    return [];
+                }
+
+                return [cellX, cellY];
+            };
+
+            getCellSize = () => {
+                return [cellWidth, cellHeight];
+            };
+
+            getCellPosition = (x, y) => {
+                var position = getPosition(canvas);
+
+                if (cellInViewport(x, y)) {
+                    return [
+                        position.x + margin + x * cellWidth - scrollLeft,
+                        position.y + margin + y * cellHeight - scrollTop
+                    ]
+                }
+
+                return [];
+            };
+
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
 
-            const margin = 16;
+            const range = getViewportCellRange();
 
             const elementWidth = canvas.offsetWidth - margin * 2;
             const elementHeight = canvas.offsetHeight - margin * 2;
 
-            const cellWidth = elementWidth / horizontal;
-            const cellHeight = elementHeight / vertical;
-
             // Vertical lines
-            for (let i = 0; i <= horizontal; i++) {
+            for (let i = range.x[0] < 0 ? 0 : range.x[0]; i <= range.x[1] && i <= horizontal; i++) {
                 ctx.beginPath();
-                ctx.moveTo(i * cellWidth + margin, margin);
-                ctx.lineTo(i * cellWidth + margin, margin + cellHeight * vertical);
+                ctx.moveTo(i * cellWidth + margin - scrollLeft, margin - scrollTop);
+                ctx.lineTo(i * cellWidth + margin - scrollLeft, margin + cellHeight * vertical - scrollTop);
                 ctx.stroke();
             }
 
             // Horizontal lines
-            for (let i = 0; i <= vertical; i++) {
+            for (let i = range.y[0] < 0 ? 0 : range.y[0]; i <= range.y[1] && i <= vertical; i++) {
                 ctx.beginPath();
-                ctx.moveTo(margin, i * cellHeight + margin);
-                ctx.lineTo(margin + cellWidth * horizontal, i * cellHeight + margin);
+                ctx.moveTo(margin - scrollLeft, i * cellHeight + margin - scrollTop);
+                ctx.lineTo(margin + cellWidth * horizontal - scrollLeft, i * cellHeight + margin - scrollTop);
                 ctx.stroke();
             }
 
             function highlightCell(cell, focused = false) {
-                if (cell[0] >= 0 && cell[1] >= 0 &&
-                    cell[0] < horizontal && cell[1] < vertical) {
-                    const cellX = margin + cellWidth * cell[0];
-                    const cellY = margin + cellHeight * cell[1];
+                if (cellInViewport(cell[0], cell[1]) && isAvailableCell(cell[0], cell[1])) {
+                    const cellX = margin + cellWidth * cell[0] - scrollLeft;
+                    const cellY = margin + cellHeight * cell[1] - scrollTop;
                     ctx.save();
                     ctx.beginPath();
                     ctx.fillStyle = '#298de521';
@@ -715,10 +1135,9 @@
             }
 
             function lockedCell(cell) {
-                if (cell[0] >= 0 && cell[1] >= 0 &&
-                    cell[0] < horizontal && cell[1] < vertical) {
-                    const cellX = margin + cellWidth * cell[0];
-                    const cellY = margin + cellHeight * cell[1];
+                if (cellInViewport(cell[0], cell[1]) && isAvailableCell(cell[0], cell[1])) {
+                    const cellX = margin + cellWidth * cell[0] - scrollLeft;
+                    const cellY = margin + cellHeight * cell[1] - scrollTop;
                     ctx.save();
                     ctx.beginPath();
                     ctx.strokeStyle = '#ff5757';
@@ -738,54 +1157,19 @@
             if (selectedCell[0] != focusedCell[0] || selectedCell[1] != focusedCell[1]) {
                 highlightCell(focusedCell);
             }
-
-            inWhichCell = (x, y) => {
-                var position = getPosition(canvas);
-                var x = x - position.x;
-                var y = y - position.y;
-
-                var cellX = Math.floor((x - margin) / cellWidth);
-                var cellY = Math.floor((y - margin) / cellHeight);
-
-                if (cellX < 0 || cellY < 0 || cellX > horizontal - 1 || cellY > vertical - 1) {
-                    return [];
-                }
-
-                return [cellX, cellY];
-            };
-
-            getCellSize = () => {
-                return [cellWidth, cellHeight];
-            };
-
-            getCellPosition = (x, y) => {
-                var position = getPosition(canvas);
-
-                if (x >= 0 && y >= 0 && x < horizontal && y < vertical) {
-                    return [
-                        position.x + margin + x * cellWidth,
-                        position.y + margin + y * cellHeight
-                    ]
-                }
-
-                return [];
-            };
         }
 
         function drawContent(horizontal, vertical) {
             ctx.fillStyle = 'rgb(0, 0, 0)';
 
-            const margin = 16;
-
             const elementWidth = canvas.offsetWidth - margin * 2;
             const elementHeight = canvas.offsetHeight - margin * 2;
 
-            const cellWidth = elementWidth / horizontal;
-            const cellHeight = elementHeight / vertical;
+            const range = getViewportCellRange();
 
             // Vertical
-            for (let i = 0; i <= horizontal; i++) {
-                for (let j = 0; j <= vertical; j++) {
+            for (let i = range.x[0] < 0 ? 0 : range.x[0]; i <= range.x[1] && i <= horizontal; i++) {
+                for (let j = range.y[0] < 0 ? 0 : range.y[0]; j <= range.y[1] && j <= vertical; j++) {
                     var content = getContent(i, j);
                     if (content != '') {
                         ctx.save();
@@ -793,7 +1177,7 @@
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.rect(
-                            margin + i * cellWidth, margin + j * cellHeight,
+                            margin + i * cellWidth - scrollLeft, margin + j * cellHeight - scrollTop,
                             cellWidth, cellHeight
                         );
                         ctx.clip();
@@ -802,7 +1186,7 @@
                         // const metrics = ctx.measureText(content);
                         // const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
-                        ctx.fillText(content, margin + (i + 0.5) * cellWidth, margin + (j + 0.5) * cellHeight);
+                        ctx.fillText(content, margin + (i + 0.5) * cellWidth - scrollLeft, margin + (j + 0.5) * cellHeight - scrollTop);
                         ctx.restore();
                     }
                 }
@@ -850,6 +1234,7 @@
 
         const resultContainerResizeObserver = new ResizeObserver(() => {
             render();
+            updateScrollBar();
             if (showInputPrompt == true) {
                 updateEditInput(selectedCell);
             }
@@ -857,26 +1242,25 @@
         resultContainerResizeObserver.observe(resultImage);
 
         function render() {
-            const cellMinWidth = 80;
-            const cellMinHeight = 36;
-            const w = resultImage.offsetWidth;
-
-            var width = w;
-            var height = w * (9 / 20);
-
-            if ((width - 32) / horizontal < cellMinWidth) {
-                width = cellMinWidth * horizontal + 32;
-                height = width * (9 / 20);
+            const horizontalValue = Number(horizontal.value);
+            const verticalValue = Number(vertical.value);
+            var width = canvas.offsetWidth / (cellWidth * horizontalValue + margin * 2) * 100;
+            var height = canvas.offsetHeight / (cellHeight * verticalValue + margin * 2) * 100;
+            canvasScrollBarHorizontalThumbBar.style.width = width < 0 ? 0 : width + '%';
+            canvasScrollBarVerticalThumbBar.style.height = height < 0 ? 0 : height + '%';
+            if (width > 100) {
+                canvasScrollBarHorizontal.style.display = 'none';
+            } else {
+                canvasScrollBarHorizontal.style.display = 'flex';
             }
-            if ((height - 32) / vertical < cellMinHeight) {
-                height = cellMinHeight * vertical + 32;
+            if (height > 100) {
+                canvasScrollBarVertical.style.display = 'none';
+            } else {
+                canvasScrollBarVertical.style.display = 'flex';
             }
-
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
             canvasClarifier(canvas, ctx);
-            drawGrid(Number(horizontal.value), Number(vertical.value));
-            drawContent(Number(horizontal.value), Number(vertical.value));
+            drawGrid(horizontalValue, verticalValue);
+            drawContent(horizontalValue, verticalValue);
         }
 
         canvas.addEventListener('pointermove', (e) => {
@@ -971,10 +1355,6 @@
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            const margin = 16;
-            const cellWidth = 80;
-            const cellHeight = 36;
-
             const width = horizontal * cellWidth + margin * 2;
             const height = vertical * cellHeight + margin * 2;
 
