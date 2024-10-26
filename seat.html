@@ -781,6 +781,8 @@
             setHorizontalClassName();
             updateButtonStatus();
             if (isvalid()) {
+                scrollTop = 0;
+                scrollLeft = 0;
                 render();
             }
         })
@@ -789,6 +791,8 @@
             setVerticalClassName();
             updateButtonStatus();
             if (isvalid()) {
+                scrollTop = 0;
+                scrollLeft = 0;
                 render();
             }
         })
@@ -1001,7 +1005,7 @@
                 }
                 if (scrollLeft < 0) {
                     scrollLeft = 0;
-                } 
+                }
                 if (scrollLeft > (cellWidth * Number(horizontal.value) + margin * 2) - resultImage.offsetWidth) {
                     scrollLeft = (cellWidth * Number(horizontal.value) + margin * 2) - resultImage.offsetWidth;
                 }
