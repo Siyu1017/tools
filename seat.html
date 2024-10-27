@@ -54,7 +54,8 @@
             align-items: center;
         }
 
-        .input:not([type="checkbox"]) {
+        .input[type="number"],
+        .input[type="text"] {
             border: none;
             outline: none;
             background: #fff;
@@ -88,6 +89,38 @@
             height: fit-content;
         }
 
+        .app-result-settings {
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .app-result-setting-header {
+            font-size: 1.25rem;
+            margin: .5rem 0;
+        }
+
+        .app-result-setting-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .app-result-setting-group .input {
+            width: -webkit-fill-available;
+            outline: none;
+        }
+
+        .app-result-setting-group label {
+            width: fit-content;
+            white-space: nowrap;
+        }
+
+        .app-result-control {
+            padding: .5rem 1rem;
+        }
+
         .app-result-image {
             width: -webkit-fill-available;
             overflow: hidden;
@@ -116,7 +149,8 @@
             outline: none;
         }
 
-        .input:not([type="checkbox"]) {
+        .input[type="number"],
+        .input[type="text"] {
             width: min(30vw, 18rem);
         }
 
@@ -274,6 +308,17 @@
 
             .ad-image {
                 display: none;
+            }
+
+            .app-result-setting-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: .25rem;
+                padding-bottom: .25rem;
+            }
+
+            .app-result-setting-input {
+                width: -webkit-fill-available;
             }
         }
 
@@ -482,6 +527,83 @@
         .canvas-scroll-bar-horizontal:hover .canvas-scroll-bar-thumb-bar {
             height: .375rem;
         }
+
+        *[data-tooltip] {
+            position: relative;
+        }
+
+        *[data-tooltip]:hover:after {
+            opacity: 1;
+            visibility: visible;
+            -webkit-transform: translate(0, -8px) scale(1);
+            transform: translate(0, -8px) scale(1);
+        }
+
+        *[data-tooltip]:after {
+            position: absolute;
+            content: attr(data-tooltip);
+            background: rgb(48, 48, 48);
+            padding: 12px;
+            text-align: center;
+            color: #fff;
+            font-size: 12px;
+            white-space: nowrap;
+            border-radius: 8px;
+            -webkit-transform: translate(50%, -8px) scale(0);
+            transform: translate(50%, -8px) scale(0);
+            display: flex;
+            align-items: center;
+            height: 12px;
+            pointer-events: none;
+            box-shadow: 0 0 16px 4px rgba(0, 0, 0, .15);
+            transform-origin: bottom center;
+            top: auto;
+            bottom: 100%;
+            right: 0%;
+            z-index: 5;
+            opacity: 0;
+            visibility: hidden;
+            -webkit-transition: 0.15s ease-in;
+            transition: 0.15s ease-in;
+        }
+
+        .app-result-setting-input {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .app-result-setting-input .input {
+            width: -webkit-fill-available;
+        }
+
+        .app-result-setting-input.error .hint {
+            padding-top: .5rem;
+        }
+
+        .app-result-setting-info {
+            min-width: 1.5rem;
+            min-height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: sticky;
+            right: 0;
+            margin-left: auto;
+        }
+
+        .app-result-setting-info::before {
+            content: '';
+            mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWluZm8iPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PHBhdGggZD0iTTEyIDE2di00Ii8+PHBhdGggZD0iTTEyIDhoLjAxIi8+PC9zdmc+");
+            mask-size: cover;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            width: 1.125rem;
+            height: 1.125rem;
+            background-color: rgb(170 170 170);
+            display: block;
+        }
     </style>
 </head>
 
@@ -493,12 +615,12 @@
                 <div class="app-settings">
                     <div class="input-group number" id="vertical-group">
                         <label for="vertical">行數</label>
-                        <input class="input" type="number" id="vertical" name="vertical" value="6">
+                        <input class="input" type="number" id="vertical" name="vertical" value="18">
                         <span class="hint">行數必須大於零</span>
                     </div>
                     <div class="input-group" id="horizontal-group">
                         <label for="horizontal">列數</label>
-                        <input class="input" type="number" id="horizontal" name="horizontal" value="6">
+                        <input class="input" type="number" id="horizontal" name="horizontal" value="18">
                         <span class="hint">列數必須大於零</span>
                     </div>
                     <div class="input-group">
@@ -513,8 +635,42 @@
                     </a>
                 </div>
                 <div class="app-result" id="result">
+                    <div class="app-result-settings">
+                        <div class="app-result-setting-header">顯示設定</div>
+                        <div class="app-result-setting-group">
+                            <label for="export-global-margin">邊距 (像素)</label>
+                            <div class="app-result-setting-input">
+                                <input class="input" type="number" id="export-global-margin" name="export-global-margin" value="16">
+                                <span class="hint">邊距必須大於零</span>
+                            </div>
+                        </div>
+                        <div class="app-result-setting-group">
+                            <label for="export-font-size">字體大小 (像素)</label>
+                            <div class="app-result-setting-input">
+                                <input class="input" type="number" id="export-font-size" name="export-font-size" value="16">
+                                <span class="hint">字體大小必須大於零</span>
+                            </div>
+                            <!--div class="app-result-setting-info" data-tooltip="建議字體大小介於 12 像素至 24 像素"></div-->
+                        </div>
+                        <div class="app-result-setting-group"><label for="export-cell-width">表格寬度 (像素)</label>
+                            <div class="app-result-setting-input">
+                                <input class="input" type="number" id="export-cell-width" name="export-cell-width" value="80">
+                                <span class="hint">表格寬度必須大於零</span>
+                            </div>
+                            <!--div class="app-result-setting-info" data-tooltip="表格寬度建議大於 60 像素"></div-->
+                        </div>
+                        <div class="app-result-setting-group">
+                            <label for="export-cell-height">表格高度 (像素)</label>
+                            <div class="app-result-setting-input">
+                                <input class="input" type="number" id="export-cell-height" name="export-cell-height" value="36">
+                                <span class="hint">表格高度必須大於零</span>
+                            </div>
+                            <!--div class="app-result-setting-info" data-tooltip="表格高度建議大於 30 像素"></div-->
+                        </div>
+                    </div>
                     <div class="app-result-control">
-                        <button class="button" id="download">Download</button>
+                        <button class="button" id="reset-export-setting">重設</button>
+                        <button class="button" id="download">下載圖片</button>
                     </div>
                     <div class="app-result-image" id="result-image">
 
@@ -640,9 +796,49 @@
             contents: {}
         }
 
+        var fontSize = 16;
         var margin = 16;
         var cellWidth = 80;
         var cellHeight = 36;
+
+        document.getElementById("reset-export-setting").addEventListener("click", () => {
+            document.getElementById("export-global-margin").value = 16;
+            document.getElementById("export-font-size").value = 16;
+            document.getElementById("export-cell-width").value = 80;
+            document.getElementById("export-cell-height").value = 36;
+            fontSize = 16;
+            margin = 16;
+            cellWidth = 80;
+            cellHeight = 36;
+            scrollTop = 0;
+            scrollLeft = 0;
+            render();
+        })
+
+        document.getElementById("export-global-margin").addEventListener('input', () => {
+            margin = Number(document.getElementById("export-global-margin").value);
+            scrollTop = 0;
+            scrollLeft = 0;
+            render();
+        })
+        document.getElementById("export-font-size").addEventListener('input', () => {
+            fontSize = Number(document.getElementById("export-font-size").value);
+            scrollTop = 0;
+            scrollLeft = 0;
+            render();
+        });
+        document.getElementById("export-cell-width").addEventListener('input', () => {
+            cellWidth = Number(document.getElementById("export-cell-width").value);
+            scrollTop = 0;
+            scrollLeft = 0;
+            render();
+        });
+        document.getElementById("export-cell-height").addEventListener('input', () => {
+            cellHeight = Number(document.getElementById("export-cell-height").value);
+            scrollTop = 0;
+            scrollLeft = 0;
+            render();
+        });
 
         function isLocked(x, y) {
             return lockedCells.some(cell => cell[0] == x && cell[1] == y)
@@ -862,6 +1058,9 @@
 
             function horizontalScrollMove(e) {
                 if (pointerDown != true) return;
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
                 try {
                     document.getSelection().removeAllRanges();
                 } catch (e) { }
@@ -898,7 +1097,9 @@
                 canvasScrollBarHorizontalThumbBar.addEventListener(event, horizontalScrollStart);
             })
             events.move.forEach(event => {
-                window.addEventListener(event, horizontalScrollMove);
+                window.addEventListener(event, horizontalScrollMove, {
+                    passive: false
+                });
             })
             events.end.forEach(event => {
                 window.addEventListener(event, horizontalScrollEnd);
@@ -950,6 +1151,9 @@
 
             function verticalScrollMove(e) {
                 if (pointerDown != true) return;
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
                 try {
                     document.getSelection().removeAllRanges();
                 } catch (e) { }
@@ -986,7 +1190,9 @@
                 canvasScrollBarVerticalThumbBar.addEventListener(event, verticalScrollStart);
             })
             events.move.forEach(event => {
-                window.addEventListener(event, verticalScrollMove);
+                window.addEventListener(event, verticalScrollMove, {
+                    passive: false
+                });
             })
             events.end.forEach(event => {
                 window.addEventListener(event, verticalScrollEnd);
@@ -1029,7 +1235,11 @@
             if (showInputPrompt == true) {
                 updateEditInput(selectedCell);
             }
-            event.preventDefault();
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+        }, {
+            passive: false
         });
 
         function getViewportCellRange() {
@@ -1185,7 +1395,7 @@
                             cellWidth, cellHeight
                         );
                         ctx.clip();
-                        ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
+                        ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif`
 
                         // const metrics = ctx.measureText(content);
                         // const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
@@ -1265,6 +1475,7 @@
             canvasClarifier(canvas, ctx);
             drawGrid(horizontalValue, verticalValue);
             drawContent(horizontalValue, verticalValue);
+            updateScrollBar();
         }
 
         canvas.addEventListener('pointermove', (e) => {
@@ -1308,10 +1519,11 @@
             }
             e.preventDefault();
             var cell = inWhichCell(e.pageX, e.pageY);
+            if (!cellInViewport(cell[0], cell[1]) || !isAvailableCell(cell[0], cell[1])) return;
             var cellLocked = isLocked(cell[0], cell[1]);
             const menu = WinUI.contextMenu([{
                 className: 'lock',
-                text: cellLocked ? "Unlock" : "Lock",
+                text: cellLocked ? "取消鎖定" : "鎖定",
                 action: async () => {
                     if (cellLocked) {
                         unlockCell(cell[0], cell[1]);
@@ -1432,7 +1644,7 @@
                             cellWidth, cellHeight
                         );
                         ctx.clip();
-                        ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
+                        ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif`
 
                         // const metrics = ctx.measureText(content);
                         // const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
